@@ -1,0 +1,6 @@
+{
+  "name": "Linux & Zorin OS Fast File Search Station",
+  "description": "Blazing-fast file search tools, visual filter command generator, and no-sudo solutions for Linux and Zorin OS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
