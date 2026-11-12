@@ -45,21 +45,77 @@ ${activeCommand.command}`;
   };
 
   const handleDownloadScript = () => {
+    const findCommand = commands.find(command => command.tool === 'find');
+    let scriptCommand = activeCommand.command;
+    let scriptExecution = activeCommand.command;
+    const usesFindForScript = ['fd', 'fzf', 'ripgrep'].includes(activeCommand.tool);
+
+    if (activeCommand.tool === 'fsearch') {
+      if (!findCommand) {
+        throw new Error('Could not generate the GNU find command for the downloaded script.');
+      }
+
+      const escapedQuery = activeCommand.command.replace(/'/g, "'\\''");
+      scriptCommand = `FSearch GUI query: ${activeCommand.command} (uses find if FSearch is unavailable)`;
+      scriptExecution = `fsearch_binary="$(command -v fsearch || true)"
+if [[ -z "$fsearch_binary" && -x "$HOME/.local/bin/fsearch" ]]; then
+  fsearch_binary="$HOME/.local/bin/fsearch"
+fi
+
+if [[ -n "$fsearch_binary" ]]; then
+  "$fsearch_binary" >/dev/null 2>&1 &
+  printf 'Enter this search query in FSearch: %s\\n' '${escapedQuery}'
+else
+  echo "FSearch is unavailable; running the equivalent search with GNU find." >&2
+  ${findCommand.command}
+fi
+
+`;
+    } else if (usesFindForScript) {
+      if (!findCommand) {
+        throw new Error('Could not generate the GNU find command for the downloaded script.');
+      }
+
+      if (activeCommand.tool === 'fd') {
+        scriptCommand = findCommand.command;
+        scriptExecution = findCommand.command;
+      } else if (activeCommand.tool === 'ripgrep') {
+        scriptCommand = `${activeCommand.command} (falls back to find if rg is unavailable)`;
+        scriptExecution = `if command -v rg >/dev/null 2>&1; then
+  ${activeCommand.command}
+else
+  echo "ripgrep (rg) is not installed; using GNU find instead." >&2
+  ${findCommand.command}
+fi`;
+      } else {
+        const fzfSeparator = activeCommand.command.indexOf('| fzf');
+        if (fzfSeparator === -1) {
+          throw new Error('Could not locate the fzf command in the generated script.');
+        }
+
+        const fzfCommand = activeCommand.command.slice(fzfSeparator + 2);
+        scriptCommand = `(${findCommand.command}) | ${fzfCommand}`;
+        scriptExecution = scriptCommand;
+      }
+    }
+
     const scriptContent = `#!/usr/bin/env bash
 # ==============================================================================
 # Linux & Zorin OS Fast File Search Script
 # Generated from Student Tutorial Workbench
 # Tool: ${activeCommand.title}
 # Description: ${activeCommand.description}
+# ${activeCommand.tool === 'fsearch' ? 'Uses FSearch when installed; otherwise runs the equivalent GNU find search.' : ''}
+# ${usesFindForScript ? 'Uses GNU find for file listing when needed; fd/fzf/ripgrep are not required for fallback searches.' : ''}
 # ==============================================================================
 
 set -euo pipefail
 
 echo "==> Running Linux File Search: ${activeCommand.title}..."
-echo "==> Command: ${activeCommand.command}"
+echo "==> Command: ${scriptCommand}"
 echo ""
 
-${activeCommand.command}
+${scriptExecution}
 
 echo ""
 echo "==> Search finished."

@@ -4,44 +4,63 @@
 > **Attribution:** Co-inspired by rkirchin / Gemini  
 > **GitHub Repository:** [https://github.com/rpkirchin-creator/Zorin-Linux-FileFinder.git](https://github.com/rpkirchin-creator/Zorin-Linux-FileFinder.git)  
 
----
+copy the below script fully automated process(please let it run and always select "Y" with this script)
+if you want just the app as your not using vscode run the ("install-tutorial.sh") right click on it make executable
 
-## 🚀 Option 1: The "Painless 30-Second Setup" (Zero Sudo Required)
+----------------------------------------------------------------------
 
-If your students are on school laptops, corporate PCs, or accounts **without admin/root passwords**, this single command will set up everything into their user directory (`~/.local/bin`):
+#!/bin/bash
+set -e
 
-### The 1-Line Universal Installer Script
-Copy and paste this into the terminal and press Enter:
+# 1. Ensure local bin exists and is in PATH
+mkdir -p "$HOME/.local/bin"
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+    export PATH="$HOME/.local/bin:$PATH"
+fi
 
-```bash
-mkdir -p ~/.local/bin ~/.fzf
+# 2. Install ripgrep (statically linked musl binary)
+echo "Downloading ripgrep..."
+curl -sL --retry 3 --retry-connrefused --connect-timeout 15 \
+  "https://github.com/BurntSushi/ripgrep/releases/download/14.1.1/ripgrep-14.1.1-x86_64-unknown-linux-musl.tar.gz" \
+  | tar -xz -C /tmp --wildcards '*/rg' --strip-components=1 2>/dev/null || true
 
-# 1. Download 'fd' (10x faster find)
-curl -sL https://github.com/sharkdp/fd/releases/latest/download/fd-v10.2.0-x86_64-unknown-linux-musl.tar.gz | tar -xz --strip-components=1 -C ~/.local/bin/ fd-v10.2.0-x86_64-unknown-linux-musl/fd
+if [ -f /tmp/rg ]; then
+    mv /tmp/rg "$HOME/.local/bin/rg"
+    chmod +x "$HOME/.local/bin/rg"
+fi
 
-# 2. Download 'ripgrep' (world's fastest text searcher)
-curl -sL https://github.com/BurntSushi/ripgrep/releases/latest/download/ripgrep-14.1.1-x86_64-unknown-linux-musl.tar.gz | tar -xz --strip-components=1 -C ~/.local/bin/ ripgrep-14.1.1-x86_64-unknown-linux-musl/rg
+# 3. Install fd (statically linked musl binary)
+echo "Downloading fd..."
+curl -sL --retry 3 --retry-connrefused --connect-timeout 15 \
+  "https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-x86_64-unknown-linux-musl.tar.gz" \
+  | tar -xz -C /tmp --wildcards '*/fd' --strip-components=1 2>/dev/null || true
 
-# 3. Download 'FSearch' (Instant GUI search like Everything on Windows)
-curl -sL https://github.com/cboxdoerfer/fsearch/releases/latest/download/FSearch-x86_64.AppImage -o ~/.local/bin/fsearch
+if [ -f /tmp/fd ]; then
+    mv /tmp/fd "$HOME/.local/bin/fd"
+    chmod +x "$HOME/.local/bin/fd"
+fi
 
-# 4. Make them executable
-chmod +x ~/.local/bin/fd ~/.local/bin/rg ~/.local/bin/fsearch
+# 4. Install fzf (fuzzy finder binary)
+echo "Downloading fzf..."
+curl -sL --retry 3 --retry-connrefused --connect-timeout 15 \
+  "https://github.com/junegunn/fzf/releases/download/v0.56.3/fzf-0.56.3-linux_amd64.tar.gz" \
+  | tar -xz -C /tmp 2>/dev/null || true
 
-# 5. Ensure ~/.local/bin is permanently in PATH
-grep -q '.local/bin' ~/.bashrc || echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
+if [ -f /tmp/fzf ]; then
+    mv /tmp/fzf "$HOME/.local/bin/fzf"
+    chmod +x "$HOME/.local/bin/fzf"
+fi
 
-echo "✅ All tools installed successfully into ~/.local/bin!"
-```
+# 5. Install FSearch via user-space Flatpak (non-interactive, no sudo prompts)
+if command -v flatpak &> /dev/null; then
+    echo "Installing FSearch..."
+    flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo >/dev/null 2>&1 || true
+    flatpak install --user --noninteractive flathub io.github.cboxdoerfer.FSearch >/dev/null 2>&1 || true
+fi
 
-### Next: Install `fzf` Interactive Fuzzy Finder (Zero Sudo)
-```bash
-git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install --all
-source ~/.bashrc
-```
-
+echo "Setup complete! Verify with: rg --version && fd --version && fzf --version"
+---------------------------------------------------------------------------------
 **That's it!** No administrator password was asked, and no system files were modified.
 
 ---
