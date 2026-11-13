@@ -3,7 +3,7 @@ set -e
 
 echo "=========================================="
 echo "Starting Student Tutorial Environment Setup"
-echo "Created by rpkirchin-creator / Gemini"
+echo "Created by rkirchin-creator / Gemini      "
 echo "=========================================="
 
 # 1. Ensure local bin exists and is in PATH
@@ -57,7 +57,6 @@ fi
 echo "[5/6] Downloading application files..."
 APP_DIR="$HOME/student-tutorial-app"
 
-# Ensure git is available (usually pre-installed, but safe to check/install via user space if needed)
 if ! command -v git &> /dev/null; then
     sudo apt update && sudo apt install git -y
 fi
@@ -68,10 +67,10 @@ if [ -d "$APP_DIR/.git" ]; then
 else
     echo "Cloning tutorial repository..."
     # REPLACE with your actual GitHub repository URL
-    git clone https://github.com/rpkirchin-creator/Zorin-Linux-FileFinder.git "$APP_DIR"
+    git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git "$APP_DIR"
 fi
 
-# 7. Create the application runner wrapper in ~/.local/bin pointing to the cloned app folder
+# 7. Create the application runner wrapper for Node/Vite
 echo "[6/6] Configuring application launcher and desktop shortcut..."
 LAUNCHER="$HOME/.local/bin/run-student-app"
 
@@ -80,8 +79,18 @@ cat << EOF > "$LAUNCHER"
 echo "Launching Student Tutorial Application..."
 cd "$APP_DIR"
 
-# Point this to how your app runs (e.g., dotnet run or dotnet YourApp.dll)
-dotnet run
+# Install npm packages if node_modules doesn't exist yet
+if [ ! -d "node_modules" ]; then
+    echo "Installing project dependencies (first run)..."
+    npm install
+fi
+
+# Optionally auto-open the browser after a brief delay once Vite boots up
+# NEW:
+(sleep 2 && xdg-open http://localhost:3000 2>/dev/null) &
+
+# Start the Vite development server
+npm run dev
 
 echo ""
 read -p "App closed. Press Enter to exit..."
@@ -96,7 +105,7 @@ DESKTOP_FILE="$DESKTOP_DIR/Student-Tutorial.desktop"
 cat << EOF > "$DESKTOP_FILE"
 [Desktop Entry]
 Name=Student Tutorial App
-Comment=Launch the interactive tutorial application
+Comment=Launch the interactive React tutorial application
 Exec=$LAUNCHER
 Terminal=true
 Type=Application
