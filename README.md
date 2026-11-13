@@ -5,7 +5,12 @@
 > **Official GitHub Repository:** [https://github.com/rpkirchin-creator/Zorin-Linux-FileFinder.git](https://github.com/rpkirchin-creator/Zorin-Linux-FileFinder.git)  
 > **Target Distributions:** Zorin OS 16 / 17, Ubuntu 22.04 / 24.04 LTS, Debian, Linux Mint, Pop!_OS, Fedora
 
+---Use the script ("install-tutorial.sh ") if you dont want to use a ide environment
+---The script will install everything and download what is needed ------
+---Student-Tutorial.desktop will be placed----
 ---
+
+--------I hope this will help new students and or new users looking for an alternative to windows ---------
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/Language-TypeScript_5.x-blue?logo=typescript)](https://www.typescriptlang.org/)
